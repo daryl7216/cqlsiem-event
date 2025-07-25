@@ -4,7 +4,7 @@
 
 Platforms: ChromeOS, Windows Legacy, Forensics
 
-## Platforms: Windows, macOS
+Platforms: Windows, macOS
 
 This event (often called "PR2" for short) is generated for a process that is running or has finished running on a host and contains information about that process. For every ProcessRollup2 event, there is a corresponding event that is generated when a process completes. The name of this event is EndOfProcess for Windows and Mac and TerminateProcess for Linux.
 
