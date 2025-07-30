@@ -1,4 +1,4 @@
-## Comments
+# Comments
 
 The CrowdStrike Query Language (CQL) supports both single-line and multi-line commenting capabilities for code documentation. Single-line comments using // are ideal for end-of-line annotations, while multi-line comments using /* */ allow for more detailed search descriptions and comprehensive documentation within queries.
 
@@ -27,7 +27,7 @@ Multi-line comments are useful to provide a deeper description or documentation 
 | process = ?process
 ```
 ---
-## Query Filters
+# Query Filters
 
 LogScale query filters enable powerful search capabilities through free text matching, field-specific filters, and regular expressions, with each type offering distinct ways to find and filter event data. The documentation covers the syntax and usage of these three filter types, including how multiple filters can be combined with implicit AND operations, along with important considerations for performance and field extraction when using different filtering methods.
 
@@ -148,7 +148,7 @@ The use of a regex in this syntax is similar to using the regex() . There are so
 
 ---
 
-## Operators
+# Operators
 
 The documentation covers LogScale operators and their usage in comparing field values across strings, numbers, and regular expressions, including detailed explanations of string comparison operators (=, !=, like), numeric operators (&lt;, &gt;, =, etc.), and logical operators (and, or, not). The guide also explains how operators interact with tag fields, provides examples of combining filters with Boolean operators, and demonstrates how to negate filter function expressions for more efficient querying.
 
@@ -296,7 +296,7 @@ LOGSCALE SYNTAX
 
 ---
 
-## Adding Fields
+# Adding Fields
 
 The documentation explains how to add new fields in LogScale through two primary methods: regular expression-based field extraction and function-based field creation using 'as' parameters. Additional topics covered include eval syntax for numeric computations, assignment operators for simplified field creation, and field operators for filtering specific fields with functions, providing users with comprehensive options for field manipulation and data processing.
 
@@ -463,7 +463,7 @@ This works with many functions, including regex() and replace() .
 
 ---
 
-## User Parameters (Variables)
+# User Parameters (Variables)
 
 The documentation explains how to implement user-configurable parameters in LogScale queries, allowing dynamic value substitution through user input rather than fixed values. Parameters can be created using a question mark prefix, support default values for automated contexts like triggers and scheduled searches, and offer special syntax for handling multi-value inputs in dashboard implementations.
 
@@ -506,7 +506,7 @@ When using Multi-value Parameters in dashboards, multiple values can be added at
 
 
 ---
-## Conditional Evaluation
+# Conditional Evaluation
 
 LogScale provides conditional evaluation capabilities through Case Statements and Match Statements, allowing developers to define alternative flows and handle different scenarios in their queries. Case Statements enable multiple test expressions with corresponding results using a semicolon-separated clause structure, while Match Statements offer a switch-like operation that checks conditions against the same field using filters and regular expressions, both supporting default/wildcard clauses for handling unmatched events.
 
@@ -736,6 +736,8 @@ logtype match {
 ## Setting a Field's Default Value
 
 You can use the function default() to set the value of a missing or empty field or use the function coalesce() to select the first defined value from a list of expressions.
+
+---
 
 
 
