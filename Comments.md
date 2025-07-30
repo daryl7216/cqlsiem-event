@@ -6,7 +6,7 @@ The CrowdStrike Query Language (CQL) supports // single-line and /* multi-line *
 
 Single-line comments should be used at the end of a line, for example:
 
-```xql
+```
 #host=github #parser=json 
 | // Search for host and parser
 repo.name=docker/*
@@ -16,7 +16,7 @@ repo.name=docker/*
 
 Multi-line comments are useful to provide a deeper description or documentation for a search. For example:
 
-```xql
+```
 /* Search for killed processes
    Set the <signal> type and <process> name */
 ?{signal="*" }
