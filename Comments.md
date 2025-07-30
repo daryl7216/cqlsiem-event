@@ -78,8 +78,8 @@ NOTE:
 You can perform more complex regular expression searches on all fields of an event by using the regex() function or the /regex/ regex syntax.
 ```
 
-| Query         | Description               |
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Query  ▴▾          | Description  ▴▾                                                                                                                                                                                                     |
+|--------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | foo                | Find all events matching  foo  in any field of the events. Without a field specification, the text is treated as if it has a leading and trailing wildcard. For example  *foo*                                      |
 | "foo bar"          | Use quotes if the search string contains white spaces or special characters, or is a keyword. Without a field specification, the text is treated as if it has a leading and trailing wildcard. For example  "*foo*" |
 | "msg:\"welcome\" " | You can include quotes in the search string by escaping them with backslashes.                                                                                                                                      |
