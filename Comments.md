@@ -38,19 +38,22 @@ A filter is a less general kind of expression compared to an expression. Neither
 Implicit AND is supported in the Filter production so be aware that this:
 
 ```
-LOGSCALE SYNTAX foo < 42 + 3
+LOGSCALE SYNTAX
+foo < 42 + 3
 ```
 
 means:
 
 ```
-LOGSCALE SYNTAX (foo < 42) AND "*+*" AND "*3*"
+LOGSCALE SYNTAX
+(foo < 42) AND "*+*" AND "*3*"
 ```
 
 Essentially, two expressions are considered to be logically combined with an AND so that:
 
 ```
-LOGSCALE src="client" ip="127.0.0.1"
+LOGSCALE
+src="client" ip="127.0.0.1"
 ```
 
 Matches both filter expressions, (for example both a client and localhost address).
@@ -58,7 +61,8 @@ Matches both filter expressions, (for example both a client and localhost addres
 The above implies the pipe in the expression, so the above is identical to:
 
 ```
-LOGSCALE src="client" | ip="127.0.0.1"
+LOGSCALE
+src="client" | ip="127.0.0.1"
 ```
 
 ## Free-Text Filters
@@ -114,7 +118,8 @@ In addition to globbing ( * appearing in match strings) you can match fields usi
 To use a regular expression, enclose the regular expression in two forward slashes. For example:
 
 ```
-LOGSCALE /regex/
+LOGSCALE
+/regex/
 ```
 
 The use of a regex in this syntax is similar to using the regex() . There are some differences between /regex/ and regex() operations:
@@ -171,13 +176,15 @@ field := evalExpression.
 For string operators, the syntax assumes the value on the right of the operator is a string. For example:
 
 ```
-LOGSCALE SYNTAX class like "Bucket"
+LOGSCALE SYNTAX
+class like "Bucket"
 ```
 
 The like operator also supports wildcards, so:
 
 ```
-LOGSCALE SYNTAX class like "foo*bar"
+LOGSCALE SYNTAX
+class like "foo*bar"
 ```
 
 Will find entries that begin with foo and end with bar .
@@ -191,7 +198,8 @@ Will find entries that begin with foo and end with bar .
 The like operator filters for fields containing the string, but remains case sensitive. The like operator query:
 
 ```
-LOGSCALE SYNTAX class like "Bucket"
+LOGSCALE SYNTAX
+class like "Bucket"
 ```
 
 Is therefore equivalent to:
@@ -212,13 +220,15 @@ class = *Bucket*
 Or
 
 ```
-LOGSCALE SYNTAX class like /Bucket/
+LOGSCALE SYNTAX
+class like /Bucket/
 ```
 
 Or
 
 ```
-LOGSCALE SYNTAX class = /Bucket/
+LOGSCALE SYNTAX
+class = /Bucket/
 ```
 
 ## Comparison Operators on Numbers
@@ -226,7 +236,8 @@ LOGSCALE SYNTAX class = /Bucket/
 Numerical operators can be used to filter on a numerical value. The LogScale will attempt to convert the value to a number before comparison, reporting an error if the value cannot be converted. To compare two numerical values, use the test() . For example:
 
 ```
-LOGSCALE SYNTAX statuscode = "404"
+LOGSCALE SYNTAX
+statuscode = "404"
 ```
 
 If statuscode is a numeric value, the string will be converted to a number before comparison.
@@ -271,12 +282,185 @@ Examples
 The not and ! operators can also be used to negate filter function expressions, which is syntactically more clean than passing in an explicit negate=true argument. Examples of this are
 
 ```
-LOGSCALE SYNTAX ... | !cidr(ip, subnet="127.0.0/16") | ... ... | !in(field, values=[a, b, c]) | ... ... | !regex("xxx") | ...
+LOGSCALE SYNTAX
+...
+| !cidr(ip, subnet="127.0.0/16")
+| ...
+...
+| !in(field, values=[a, b, c])
+| ...
+...
+| !regex("xxx")
+| ...
 ```
 
 ---
 
+## Adding Fields
+
+The documentation explains how to add new fields in LogScale through two primary methods: regular expression-based field extraction and function-based field creation using 'as' parameters. Additional topics covered include eval syntax for numeric computations, assignment operators for simplified field creation, and field operators for filtering specific fields with functions, providing users with comprehensive options for field manipulation and data processing.
+
+New fields can be created in two ways:
+
+- Regular Expression-based Field Extraction
+- as Parameters
+
+## Regular Expression-based Field Extraction
+
+You can extract new fields from your text data using regular expressions and then test their values. This lets you access data that LogScale did not parse when it indexed the data.
+
+For example, if your log entries contain text such as ... disk\_free=2000 ... , then you can use a query like the following to find the entries that have less than 1000 free disk space.
+
+```
+LOGSCALE 
+regex("disk_free=(?<space>[0-9]+)") | space < 1000
+```
+
+The first line uses regular expressions to extract the value after the equals sign and assign it to the field space , and then filter the events where the extracted field is greater than 1000 .
+
+The named capturing groups ( (?&lt;FIELDNAME&gt;) are used to extract fields in regular expressions. This combines two principles, the usage of grouping in regular expressions using () , and explicit field creation.
+
+The same result can be obtained written using the regex literal syntax:
 
 
+```
+LOGSCALE
+@rawstring=/disk_free=(?<space>[0-9]+)/
+| space < 1000
+```
+
+You can apply repeat to field extraction to yield one event for each match of the regular expression. This allows processing multiple values for a named field, or a field name that matches a pattern, as in this example:
+
+```
+LOGSCALE 
+regex("value[^=]*=(?<someBar>\\S+)", repeat=true) | groupBy(someBar)
+```
+
+On an input event with a field value of:
+
+```
+ACCESSLOG 
+type=foo value=bar1 valueExtra=bar2 value=bar3
+```
+
+the groupBy() sees all three bar values.
+
+```
+! Warning In order to use field-extraction this way, the regular expression must be a top-level expression, that is, | between bars | . The following query does not work:
+```
+
+
+```
+!! Invalid Example for Demonstration - DO NOT USE 
+LOGSCALE 
+// DON'T DO THIS - THIS DOES NOT WORK 
+type=FOO or /disk_free=(?<space>[0-9]+)/ | space < 1000
+```
+
+## @Note
+
+Since regular expressions require additional processing, it is recommended to do as much simple filtering (text or field matching) as possible earlier in the query chain before applying the regular expression function.
+
+## as Parameters
+
+Fields can also be added by functions. Most functions set their result in a field that has the function name prefixed with a \_ by default. For example the count() puts its result in a field \_count .
+
+Most functions that produce fields have a parameter called as . By setting this parameter you can specify the name of the output field, for example:
+
+```
+LOGSCALE 
+count(as=cnt)
+```
+
+Assigns the result of the count() to the field named cnt (instead of the default \_count ).
+
+Many functions can be used to generate new fields using the as argument. For example concat() :
+
+```
+LOGSCALE 
+concat([aidValue, cidValue], as=checkMe2)
+```
+
+Combines the aidValue and cidValue into a single string.
+
+The format() can be used to format information and values into a new value, for example, formatting two fields with a comma separator for use with a table:
+
+```
+LOGSCALE SYNTAX 
+format(format="%s,%s", field=[a, b], as="combined") | table(combined)
+```
+
+See also the Assignment Operator for shorthand syntax for assigning results to a field.
+
+## Eval Syntax
+
+The function eval() can assign fields while doing numeric computations on the input.
+
+The := syntax is short for eval. Use | between assignments.
+
+
+```
+LOGSCALE SYNTAX
+... 
+| foo := a + b 
+| bar := a / b | 
+...
+```
+
+This is short for the following:
+
+```
+LOGSCALE SYNTAX 
+... 
+| eval(foo = a + b) 
+| eval(bar = a / b) |
+...
+```
+
+## Assignment Operator
+
+You can use the operator := with functions that take an as parameter. When what is on the right hand side of the assignment is a Function Call , the assignment is rewritten to specify the as= argument which, by convention, is the output field name. For example:
+
+```
+LOGSCALE SYNTAX 
+... 
+| foo := min(x) 
+| bar := max(x) 
+| ...
+```
+
+The above is short for this:
+
+```
+LOGSCALE SYNTAX 
+... 
+| min(x, as=foo) 
+| max(x, as=bar) 
+| ...
+```
+
+## Field Operator
+
+The field operator filters a specific field with any function that has the field parameter, so that:
+
+```
+LOGSCALE SYNTAX 
+... 
+| ip_addr =~ cidr(subnet="127.0.0.1/24") 
+| ...
+```
+
+Is synonymous with:
+
+```
+LOGSCALE SYNTAX 
+... 
+| cidr(subnet="127.0.0.1/24", field=ip_addr) 
+| ...
+```
+
+This works with many functions, including regex() and replace() .
+
+---
 
 
