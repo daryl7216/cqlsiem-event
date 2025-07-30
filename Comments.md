@@ -915,19 +915,20 @@ field / 2 Dividing the value of the field to a number, result is a number if the
 ```
 The general comparison operators == and != compare two values and produce true or false , if both values are non-null:
 
-| 7/30/25, 10:43 AM   | Expressions | Data Analysis 1.124.1-1.131.3 | LogScale Documentation                                      |
+| Operators   | Details   |
 |---------------------|-----------------------------------------------------------------------------------------------------------|
 | "a" == 2            | Comparing two values of different types, result is false.                                                 |
 | 1 != 2              | Comparing two numbers, result is true.                                                                    |
 | field ==  2         | Comparing the value of the field to a number, result is a true/false if the field exists, null otherwise. |
 
+
 Logical negation ! , computes the logical negation of a boolean value, or whether a numerical value is equal to 0 . If the value is neither a boolean nor a numeric value, the result is null:
 
-| !false,  !true   | Negation of literal boolean value, result is true and false, respectively.                                                     |
+| Operators   | Details   |
 |------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| !false,  !true   | Negation of literal boolean value, result is true and false, respectively.                                                     |
 | !field           | Negation of value in field field, result is true if the field contains a numeric value or true / false , otherwise it is null. |
 | !0, !1           | Negation of numeric values, result is true and false, respectively                                                             |
-
 There are currently no operators for logical AND and OR .
 
 ## Functions
