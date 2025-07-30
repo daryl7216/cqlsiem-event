@@ -141,7 +141,6 @@ The use of a regex in this syntax is similar to using the regex() . There are so
 | loglevel =  /error/i                                            | The  loglevel  field matches  error  case insensitively; for example, it could be  Error ,  ERROR  or  error .                                        |
 | /user with id (? <id>\S+) logged                 in/  | top(id) | The user id is extracted into a field named  id  at search time. The  id  is then used in the top function to find the users that logged in the most. |
 
-Certain functions can also be used to filter events. For a list of these functions, see Filtering Query Functions .
 ---
 
 ## Operators
