@@ -964,6 +964,162 @@ The exact details of which names need quoting are complicated. The following tab
 
 In expressions, on the other hand, quotation marks always mean a string value, while unquoted field names always mean the value of that field. To use the value of a field with such a name in an expression, the function getField() can be used with the quoted name, like coalesce([host, getField("host-name")]) . This works because getField() takes an expression and reads the value of the field with that name. Alternatively, if not using getField() , you can copy or rename the field before using it in an expression.
 
+---
+# Function Syntax
+
+LogScale query functions process event data by producing, reducing, or modifying values within query pipelines, with support for both built-in functions and user-created functions through saved queries. The documentation covers function syntax including composite function calls, user functions with arguments, link functions for creating clickable results, and repeating queries that execute at regular intervals for dashboards and alerts.
+
+LogScale query functions take a set of events, parameters, or configurations. From this, they produce, reduce, or modify values within that set, or in the events themselves within a query pipeline. LogScale has many built-in query functions. They are listed and described in the Query Functions section.
+
+## Composite Function Calls
+
+Whenever a function accepts a function as an argument, there are some special rules. For all variations of groupBy() , bucket() and timeChart() , that take a function= argument, you can also use a composite function. Composite functions take the form {f1(..) | f2(..) } which works like the composition of f1 and f2 . For example, you can do:
+
+
+```
+LOGSCALE SYNTAX 
+groupBy(type, function={ avgFoo := avg(foo) | outFoo := round(avgFoo) })
+```
+
+You can also use filters inside such composite function calls, but not saved queries.
+
+Incidentally, queries can contain Comments . This is useful for long multi-line queries and especially with saved queries, since later, you may not remember the purpose of each step. Below is an example of a comment embedded in a query:
+
+```
+LOGSCALE 
+#type=accesslog // choose the type 
+| top(url) // count urls and choose the most frequently used
+```
+
+## User Functions (Saved Searches)
+
+In addition to built-in functions, you can create your own functions by saving a query that you use often. This can be used either as a saved query or saved search within other queries. Then it can be used as a top-level element of another query, similar to a Function Call .
+
+To use a saved query this way you invoke it using the syntax $"SAVED\_QUERY\_NAME"() or, if the name does not contain whitespace or special characters you can use $nameOfSavedQuery() without quotes. A typical use for this is to define a filter or extraction ruleset that you can use as a prefix of another query.
+
+Below is an example of how you might name and use a custom function:
+
+```
+LOGSCALE 
+SYNTAX $"My Saved Query"() | $filterOutFalsePositive() 
+| ...
+```
+
+To save a query within the UI, see Save queries .
+
+## Using Arguments with User Functions
+
+You can add arguments to your user functions by using the ?argname in your saved query; you then call the saved query and supply the argument name and matching value. For example, given the following query:
+
+```
+LOGSCALE 
+host = ?host
+```
+
+Now save the query as findhost , you can execute the query using:
+
+```
+LOGSCALE 
+$findhost(host="gendarme")
+```
+
+Multiple arguments can be added during the process. For example, when processing syslog data you can parse the content, create new fields, and then query that in the output:
+
+```
+LOGSCALE
+regex(regex="Service exited due to (?<signal>\S+)")
+| signal = ?signal
+| regex(regex="sent by (?<process>\S+)[\d+]")
+| process = ?process
+```
+
+Now we have two arguments which we can save to as a query killedprocess and then query for killed processes:
+
+```
+LOGSCALE 
+$killedprocess(signal="SIGKILL", process="mds")
+```
+
+To call with only one argument, you can set a default value for the argument using ? {argument=default} , for example:
+
+```
+LOGSCALE 
+?{signal="*" }
+| ?{process="*"}
+| regex(regex="Service exited due to (?<signal>\S+)")
+| signal = ?signal
+| regex(regex="sent by (?<process>\S+)\[\d+\]")
+| process = ?process
+```
+
+Now you call the query with either argument:
+
+```
+LOGSCALE 
+$killedprocess(process="mds")
+```
+
+## Using Functions as Arguments to Other Functions
+
+Saved queries can be used in subqueries, passed to query functions that allow function arguments. However, saved queries used in such context must still meet the same requirements of the function they are in.
+
+For example, saved queries can be used in functions such as stats() or groupBy() , like this:
+
+```
+LOGSCALE SYNTAX 
+groupBy("myField", function=[count(), {id=42 
+| $"My Saved Query"() }])
+```
+
+## Link Functions
+
+When showing search results in a table it is possible to create a link that is clickable. If the value of a field looks like a link, the UI will make it clickable. Links can be constructed using the search language. The format() function can be handy for this.
+
+```
+LOGSCALE
+$extractRepo() 
+| top(repo) 
+| format("https://example.com/%s", field=repo, as=link)
+```
+
+For further clarity, you can use Markdown formatting to give the link a title:
+
+```
+LOGSCALE 
+$extractRepo() 
+| top(repo) 
+| format("[Link](https://example.com/%s)", field=repo, as=link)
+```
+
+## Repeating Queries
+
+Some functions have limitations around their use in live queries, such as join() - see beta:repeating() and selfJoin() .
+
+A repeating query is a static query that is executed at regular intervals and can be used in the same places as live queries, such as in dashboards or alerts.
+
+You can turn a live query into a repeating by adding the beta:repeating() function to the query. For example, this query will be repeated every 10 minutes and can be used in dashboards and alerts:
+
+```
+LOGSCALE 
+selfJoin(field=email_id, where=[{from=peter},{to=anders}]) 
+| beta:repeating(10m)
+```
+
+Using beta:repeating() in a static query is allowed, but has no effect.
+
+## Enabling Repeating Queries
+
+Repeating queries are in beta. In order to use repeating queries, you must enable them by making the following GraphQL mutation as root from the API explorer found at $$YOUR\_LOGSCALE\_URL/docs/api-explorer :
+
+```
+GRAPHQL
+mutation {
+  enableFeature(feature: RepeatingQueries)
+}
+```
+
+If this feature is disabled later, then any alert, dashboard, or saved query using beta:repeating() in the query will not function.
+
 
 
 
